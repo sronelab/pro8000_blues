@@ -181,20 +181,23 @@ class blue_GUI(QtGui.QWidget):
         self.handle_button_read_blues()
         #units
 
+
+
+
+
+###CHANGE
+
+
+
+
     def handle_button_updown_MOT(self):
         diode=0
-        self.blues.read_blues()
         set_current=float(self.line_edits_lock_currents[diode].text())
         ramp_up=float(self.line_edits_rampups[diode].text())
-        time_delay=float(self.line_edit_time_delay.text())
+        #time_delay=float(self.line_edit_time_delay.text())
         steps=int(abs(set_current+ramp_up-self.blues.currents[diode])/.01)
-        #assumes currents in mA
-        self.blues.ramp_up_down(diode,set_current,ramp_up,steps,time_delay)
-        self.handle_button_read_blues()
-        self.labels_maxp_currents[diode].setText(str(self.blues.maxp_currents[diode]))
-        self.labels_maxp_powers[diode].setText(str(self.blues.maxp_powers[diode]))
-        #reset the power so the next sweep can check if the new lock point drifted AND had a lower power than some previous max?
-        self.blues.maxp_powers[diode]=0
+        self.blues.read_current_new(diode,set_current,ramp_up,steps)
+        
 
     def handle_button_updown_TC(self):
         diode=1

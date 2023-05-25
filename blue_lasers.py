@@ -15,13 +15,15 @@ class blue_lasers():
         self.address = 'COM4' #Current address for blue controller
         self.baudrate = 19200
         #to record while rMPING
+        #
+        #CHANGE to Initialize
         self.lockps=[7.79,9.4,11.36]
         self.maxp_powers=[0,0,0]
         self.maxp_currents=[153.5,152.65,154.9]
         self.limited_currents=[155.3,155.3,156.2]
 
         #Open communcation to Pro8000
-        ser = serial.Serial(self.address,self.baudrate, timeout =1)
+        ser = serial.Serial(self.address,self.baudrate, timeout =.1)
         ser.reset_input_buffer()
         print(self.read_line(ser, b"*IDN?"))
 
@@ -41,7 +43,7 @@ class blue_lasers():
     def read_blues(self):
 
         #Open communcation to Pro8000
-        ser = serial.Serial(self.address,self.baudrate, timeout =1)
+        ser = serial.Serial(self.address,self.baudrate, timeout =.1)
         ser.reset_input_buffer()
 
         #Read currents
@@ -63,6 +65,48 @@ class blue_lasers():
         #Switch to local mode and close resource
         ser.write('&GTL\n')
         ser.close()
+
+
+    def ramp_current_new(self,slot, start_current, end_current, steps,time_delay=3,timeout_val=.2):
+        
+        #open communication, select slot
+        ser = serial.Serial(self.address,self.baudrate, timeout =timeout_val)
+        ser.reset_input_buffer()
+        ser.write(':SLOT ' + str(slot) + '\n')
+
+        #configure current sweep
+        ser.write(':ILD:START ' + str(start_current) + 'e-3\n')
+        ser.write(':ILD:STOP ' + str(end_current) + 'e-3\n')
+        ser.write(':ELCH:STEPS ' + str(steps))
+
+        #configure ELCH measurement
+        ser.write(':ELCH:MEAS 1') #measurements per step
+        ser.write('POPT:MEAS 1')
+
+        #Begin ELCH measurement
+        ser.write(':ELCH:RESET 0') #Reset data
+        ser.write(':ELCH:RUN 1') #Run one continuous measurement
+
+        #Switch to local mode and close resource
+        ser.write('&GTL\n')
+        ser.close()
+
+
+        #Read out process
+        time.sleep(time_delay)
+        remaining_vals=ser.read(':ELCH:RESET?')
+        time.sleep(time_delay)
+        while float(remaining_vals) > 0.0:
+            print(remaining_vals)
+            time.sleep(time_delay)
+        
+        #reading out all at once would require a very long timeout for communication
+
+
+
+
+
+    ## CHANGE
 
 
     #Function for ramping current between values. Assumes slot is current
