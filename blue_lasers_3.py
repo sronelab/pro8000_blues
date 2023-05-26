@@ -15,8 +15,8 @@ class blue_lasers():
         self.currents = [-1,-1,-1]
         self.powers = [-1,-1,-1]
         self.slots = [4,5,6] #Slots for TC, MOT, ZS
-        self.maxI=[158.0,155.4,157.5]
-        self.lockI=[158.0,155.4,157.5]
+        self.maxI=[158.0,155.4,158]
+        self.lockI=[158.0,155.4,158]
         self.lockps=[-1,-1,-1]
 
         rm = pyvisa.ResourceManager()
@@ -46,8 +46,21 @@ class blue_lasers():
             self.currents[ii] = float(inst.query(":ILD:SET?", delay=delay).split(" ")[-1])*1e3
             self.powers[ii] = float(inst.query(":POPT:ACT?", delay=delay).split(" ")[-1])*1e3
         inst.write("&GTL") #seems to close communication?
+
+    def set_blue(self, slot, set_current, delay=.1):
+        #set current directly for fine tuning.
+        #slot_ind=slot-4
+        rm = pyvisa.ResourceManager()
+        inst = rm.open_resource('ASRL4::INSTR')
+        inst.baud_rate=19200
+
+        inst.write(':SLOT ' + str(slot) + '\n')
+        inst.write(':ILD:SET ' + str(set_current) + 'e-3\n')
+
+        inst.write("&GTL")
+
     
-    def ramp_blue(self,slot,start_current,end_current,steps=100 ,delay=.1):
+    def ramp_blue(self,slot,start_current,end_current,steps=30 ,delay=.1, sweep=False):
         slot_ind=slot-4
         #Ramp current while measuring power
         rm = pyvisa.ResourceManager()
@@ -71,19 +84,29 @@ class blue_lasers():
         inst.write(':ELCH:RESET 0') #Reset data
         inst.write(':ELCH:RUN 2') #Run discrete measurement--for some reason GETALL? Not working
 
+        if start_current == self.maxI[slot_ind]: #if we are ramping down from the max current.
+            time.sleep(5) #pause at the max current to ensure power rises as we decrease current
+
         ILDs=[]
         DPs=[]
         for i in range(steps):
             vals=inst.query(':ELCH:TRIG?', delay=delay).split(',')
-            time.sleep(delay/2)
+            time.sleep(delay)
             dp=float(vals[1])/.2*1e3
             ild=float(vals[0])*1e3
+
             ILDs.append(ild)
             DPs.append(dp) #monitor powers in mW as read on the diode controller
-            #check for max
-            if dp>self.lockps[slot_ind]:
-                self.lockps[slot_ind]=dp
-                self.lockI[slot_ind]=ild
+            #update check for max if sweeping, but not if just resetting to not mess up vaues
+            if sweep:
+                #print('sweep')
+                if dp>(self.lockps[slot_ind]-.1): #.15 to be consistent with other function
+                    print(dp)
+                    #dont go right up to threshold--too unstable
+                    self.lockps[slot_ind]=DPs[-2]
+                    self.lockI[slot_ind]=ILDs[-2]
+        #print(DPs)
+        #print(ILDs)
 
         inst.write("&GTL")
 
