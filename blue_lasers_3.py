@@ -15,8 +15,8 @@ class blue_lasers():
         self.currents = [-1,-1,-1]
         self.powers = [-1,-1,-1]
         self.slots = [4,5,6] #Slots for TC, MOT, ZS
-        self.maxI=[158.0,155.4,158]
-        self.lockI=[158.0,155.4,158]
+        self.maxI=[158.0,155.6,158]
+        self.lockI=[158.2,155.8,158.2]
         self.lockps=[-1,-1,-1]
 
         rm = pyvisa.ResourceManager()
@@ -60,7 +60,7 @@ class blue_lasers():
         inst.write("&GTL")
 
     
-    def ramp_blue(self,slot,start_current,end_current,steps=30 ,delay=.1, sweep=False):
+    def ramp_blue(self,slot,start_current,end_current,steps=45 ,delay=.1, sweep=False):
         slot_ind=slot-4
         #Ramp current while measuring power
         rm = pyvisa.ResourceManager()
@@ -87,8 +87,8 @@ class blue_lasers():
         if start_current == self.maxI[slot_ind]: #if we are ramping down from the max current.
             time.sleep(5) #pause at the max current to ensure power rises as we decrease current
 
-        ILDs=[]
-        DPs=[]
+        ILDs=[self.lockI[slot_ind]]
+        DPs=[self.lockps[slot_ind]]
         for i in range(steps):
             vals=inst.query(':ELCH:TRIG?', delay=delay).split(',')
             time.sleep(delay)
@@ -96,12 +96,14 @@ class blue_lasers():
             ild=float(vals[0])*1e3
 
             ILDs.append(ild)
-            DPs.append(dp) #monitor powers in mW as read on the diode controller
+            DPs.append(dp) #monitor powers in mW as read on the diode controlle
+            #print(ild)
             #update check for max if sweeping, but not if just resetting to not mess up vaues
             if sweep:
                 #print('sweep')
-                if dp>(self.lockps[slot_ind]-.1): #.15 to be consistent with other function
+                if dp>(self.lockps[slot_ind]-.15): #.15 to be consistent with other function
                     print(dp)
+                    print(ild)
                     #dont go right up to threshold--too unstable
                     self.lockps[slot_ind]=DPs[-2]
                     self.lockI[slot_ind]=ILDs[-2]
