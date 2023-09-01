@@ -15,9 +15,11 @@ class blue_lasers():
         self.currents = [-1,-1,-1]
         self.powers = [-1,-1,-1]
         self.slots = [4,5,6] #Slots for TC, MOT, ZS
-        self.maxI=[158.0,155.6,158]
-        self.lockI=[158.2,155.8,158.2]
+        self.maxI=[158.2,156.97,158.2]
+        self.lockI=[158.2,156.4,156.0]
         self.lockps=[-1,-1,-1]
+
+        self.P_setpoint = [7.15, 9.56, 11.28]
 
         rm = pyvisa.ResourceManager()
         inst = rm.open_resource('ASRL4::INSTR')
@@ -68,8 +70,7 @@ class blue_lasers():
         inst.baud_rate=19200
         inst.write(':SLOT ' + str(slot) + '\n')
 
-        print(start_current)
-        print(end_current)
+        print(f"ramping. start: {start_current} end: {end_current}")
 
         #configure current sweep
         inst.write(':ILD:START ' + str(start_current) + 'e-3\n')
@@ -85,7 +86,7 @@ class blue_lasers():
         inst.write(':ELCH:RUN 2') #Run discrete measurement--for some reason GETALL? Not working
 
         if start_current == self.maxI[slot_ind]: #if we are ramping down from the max current.
-            time.sleep(5) #pause at the max current to ensure power rises as we decrease current
+            time.sleep(30) #pause at the max current to ensure power rises as we decrease current
 
         ILDs=[self.lockI[slot_ind]]
         DPs=[self.lockps[slot_ind]]
@@ -102,8 +103,8 @@ class blue_lasers():
             if sweep:
                 #print('sweep')
                 if dp>(self.lockps[slot_ind]-.15): #.15 to be consistent with other function
-                    print(dp)
-                    print(ild)
+                    print(f"power: {dp}")
+                    print(f"current: {ild}")
                     #dont go right up to threshold--too unstable
                     self.lockps[slot_ind]=DPs[-2]
                     self.lockI[slot_ind]=ILDs[-2]

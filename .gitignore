@@ -1,3 +1,4 @@
 resources
 data
 db_info.py
+*.pyc

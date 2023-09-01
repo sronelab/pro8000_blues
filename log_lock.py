@@ -24,12 +24,13 @@ def log_lock(blues):
     #Relocking, (Coarse, first check if a laser is unlocked)
     relock=False
     for ii in range(len(blues.slots)):
-        if blues.lockps[ii]>(blues.powers[ii]+.15): #.15 arbitrary threshold
+        # if blues.lockps[ii]>(blues.powers[ii]+.15): #.15 arbitrary threshold
+        if blues.P_setpoint[ii]>(blues.powers[ii]+.05): #.15 arbitrary threshold
             relock=True
             slot=blues.slots[ii]
             print("relocking laser" +str(slot) )
             #ramp and update values
-            blues.ramp_blue(slot,blues.maxI[ii],blues.currents[ii]-.3,sweep=True)
+            blues.ramp_blue(slot,blues.maxI[ii],blues.currents[ii]-.5,sweep=True)
             #ramp to optimum
             blues.ramp_blue(slot,blues.maxI[ii],blues.lockI[ii])
             #rerecord values if we had to relock
@@ -44,7 +45,7 @@ def log_lock(blues):
                 slot=blues.slots[ii]
                 print("adjusting current for laser " +str(slot) )
                 #decrease current by a small amount. Power seems sensitive on the .05 mA or smaller scale 
-                new_current=blues.currents[ii]-.02
+                new_current=blues.currents[ii]-.1
                 blues.set_blue(slot, new_current, delay=.1)
                 #rerecord values if we had to adjust
                 #blues.read_blues()
