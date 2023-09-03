@@ -18,9 +18,9 @@ Delta_T_list = np.linspace(-0.2, 0.2, num=10) # temperature to modulate
 
 # constants
 lasers = [
-    {"name":"2DMOT", "Islot":4, "Tslot":2, "T_init":26.726},
-    {"name":"MOT", "Islot":5, "Tslot":1, "T_init":28.1},
-    {"name":"ZS", "Islot":6, "Tslot":3, "T_init":28.878},
+    {"name":"2DMOT", "Islot":4, "Tslot":2, "T_init":26.84},
+    {"name":"MOT", "Islot":5, "Tslot":1, "T_init":28.12},
+    {"name":"ZS", "Islot":6, "Tslot":3, "T_init":29.0},
 ]
 delay = 1e-1 #reading delay
 rm = pyvisa.ResourceManager()
