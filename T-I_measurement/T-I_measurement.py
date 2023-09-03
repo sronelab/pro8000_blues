@@ -7,18 +7,19 @@ from tqdm.auto  import tqdm
 import json
 from datetime import datetime
 import os
+import numpy as np
 
 # Measurement parameters
 I_range = 4e-3 # value of the current we want to sweep from its maximum value. [A]
-N_I_points = 200 # Number of points to measure for each current ramps
+N_I_points = 100 # Number of points to measure for each current ramps
 t_Imax_hold = 10 # Imax hold time
 t_Tset_hold = 20 # Time waiting for temperature to settle.
-Delta_T_list = [-0.4, -0.2, 0, 0.2, 0.4] # temperature to modulate
+Delta_T_list = np.linspace(-0.2, 0.2, num=10) # temperature to modulate
 
 # constants
 lasers = [
     {"name":"2DMOT", "Islot":4, "Tslot":2, "T_init":26.726},
-    {"name":"MOT", "Islot":5, "Tslot":1, "T_init":28.208},
+    {"name":"MOT", "Islot":5, "Tslot":1, "T_init":28.1},
     {"name":"ZS", "Islot":6, "Tslot":3, "T_init":28.878},
 ]
 delay = 1e-1 #reading delay
@@ -26,17 +27,18 @@ rm = pyvisa.ResourceManager()
 
 def go_T_init(lasers):
     for laser in lasers:
-        inst = rm.open_resource('ASRL4::INSTR')        
+        inst = rm.open_resource('ASRL4::INSTR', open_timeout=10)        
         inst.baud_rate=19200
         inst.write(':SLOT ' + str(laser["Tslot"]) + '\n')
         inst.write(f':TEMP:SET {laser["T_init"]}')
+        time.sleep(1)
         inst.write("&GTL")
         time.sleep(1)
         print(f'{laser["name"]} temperature set to T_init:{laser["T_init"]}')
 
 def change_temperature(laser, Delta_T):
     print(f"Changing {laser['name']} temperature")
-    inst = rm.open_resource('ASRL4::INSTR')
+    inst = rm.open_resource('ASRL4::INSTR', open_timeout=10)
     inst.baud_rate=19200
     inst.write(':SLOT ' + str(laser["Tslot"]) + '\n')
     T_set_now = float(inst.query(':TEMP:SET?', delay=delay).split(" ")[-1])
@@ -52,7 +54,7 @@ def change_temperature(laser, Delta_T):
 
 def measure_currents(lasers):
     for laser in lasers:
-        inst = rm.open_resource('ASRL4::INSTR')        
+        inst = rm.open_resource('ASRL4::INSTR', open_timeout=10)        
         inst.baud_rate=19200
         # Select the current controller
         inst.write(':SLOT ' + str(laser["Islot"]) + '\n')
@@ -108,6 +110,7 @@ if __name__ == "__main__":
     print("waiting for 30 s ..."); time.sleep(30)
 
     for Delta_T in Delta_T_list:
+        time.sleep(2)
         # Change temperature and wait.
         for laser in lasers:
             change_temperature(laser, Delta_T)
