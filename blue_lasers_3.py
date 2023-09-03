@@ -19,7 +19,7 @@ class blue_lasers():
         self.lockI=[158.2,156.4,156.0]
         self.lockps=[-1,-1,-1]
 
-        self.P_setpoint = [7.18, 9.66, 11.17]
+        self.P_setpoint = [7.17, 9.59, 11.13]
 
         rm = pyvisa.ResourceManager()
         inst = rm.open_resource('ASRL4::INSTR')
@@ -86,7 +86,7 @@ class blue_lasers():
         inst.write(':ELCH:RUN 2') #Run discrete measurement--for some reason GETALL? Not working
 
         if start_current == self.maxI[slot_ind]: #if we are ramping down from the max current.
-            time.sleep(30) #pause at the max current to ensure power rises as we decrease current
+            time.sleep(10) #pause at the max current to ensure power rises as we decrease current
 
         ILDs=[self.lockI[slot_ind]]
         DPs=[self.lockps[slot_ind]]

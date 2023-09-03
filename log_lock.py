@@ -86,7 +86,7 @@ if __name__ == "__main__":
             except pyvisa.errors.VisaIOError:
                 print("VISA Error detected. Closing communication Until next cycle")
                 blues.GTL()
-            time.sleep(45)
+            time.sleep(30)
     except KeyboardInterrupt:
         pass    
 
