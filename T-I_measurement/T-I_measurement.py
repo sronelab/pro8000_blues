@@ -6,22 +6,19 @@ import time
 from tqdm.auto  import tqdm
 import json
 from datetime import datetime
-import os
 import numpy as np
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.realpath(__file__)))
+from default_settings import lasers
 
 # Measurement parameters
 I_range = 4e-3 # value of the current we want to sweep from its maximum value. [A]
 N_I_points = 100 # Number of points to measure for each current ramps
 t_Imax_hold = 10 # Imax hold time
 t_Tset_hold = 20 # Time waiting for temperature to settle.
-Delta_T_list = np.linspace(-0.2, 0.2, num=10) # temperature to modulate
+Delta_T_list = [ 0.02222222,  0.06666667,  0.11111111,  0.15555556,  0.2       ] # temperature to modulate
 
-# constants
-lasers = [
-    {"name":"2DMOT", "Islot":4, "Tslot":2, "T_init":26.84},
-    {"name":"MOT", "Islot":5, "Tslot":1, "T_init":28.12},
-    {"name":"ZS", "Islot":6, "Tslot":3, "T_init":29.0},
-]
 delay = 1e-1 #reading delay
 rm = pyvisa.ResourceManager()
 
@@ -41,6 +38,7 @@ def change_temperature(laser, Delta_T):
     inst = rm.open_resource('ASRL4::INSTR', open_timeout=10)
     inst.baud_rate=19200
     inst.write(':SLOT ' + str(laser["Tslot"]) + '\n')
+    time.sleep(1)
     T_set_now = float(inst.query(':TEMP:SET?', delay=delay).split(" ")[-1])
     # T_act_now = float(inst.query(':TEMP:ACT?', delay=delay).split(" ")[-1])
 

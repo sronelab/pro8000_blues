@@ -19,7 +19,7 @@ class blue_lasers():
         self.lockI=[158.2,156.4,156.0]
         self.lockps=[-1,-1,-1]
 
-        self.P_setpoint = [7.17, 9.59, 11.13]
+        self.P_setpoint = [7.17, 9.59, 11.10]
 
         rm = pyvisa.ResourceManager()
         inst = rm.open_resource('ASRL4::INSTR')
