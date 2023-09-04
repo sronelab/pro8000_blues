@@ -16,7 +16,6 @@ I_range = 4e-3 # value of the current we want to sweep from its maximum value. [
 N_I_points = 200 # Number of points to measure for each current ramps
 t_Imax_hold = 10 # Imax hold time
 t_Tset_hold = 20 # Time waiting for temperature to settle.
-Delta_T_list = [-0.4, -0.2, 0, 0.2, 0.4] # temperature to modulate
 
 delay = 1e-1 #reading delay
 rm = pyvisa.ResourceManager()
