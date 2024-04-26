@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 
 # Measurement parameters
 N_I_points = 50 # Number of points to measure for each current ramps
-t_Imax_hold = 3 # Imax hold time
+t_Imax_hold = 5 # Imax hold time
 
 delay = 1e-2 #reading delay
 rm = pyvisa.ResourceManager()

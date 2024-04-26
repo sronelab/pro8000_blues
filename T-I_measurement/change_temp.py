@@ -34,3 +34,7 @@ def go_T_init(lasers):
 
 if __name__ == "__main__":
     go_T_init(lasers)
+    now = datetime.now()
+    dt_string = now.strftime("%Y%m%d_%H%M%S")
+    with open(os.path.join(os.path.dirname(__file__), "data", "change_temp.output", f"{dt_string}.json") , "w") as outfile:
+        json.dump(lasers, outfile)

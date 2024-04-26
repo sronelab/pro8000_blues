@@ -45,7 +45,7 @@ def log_lock(blues):
                 slot=blues.slots[ii]
                 print("adjusting current for laser " +str(slot) )
                 #decrease current by a small amount. Power seems sensitive on the .05 mA or smaller scale 
-                new_current=blues.currents[ii]-.1
+                new_current=blues.currents[ii] - .1
                 blues.set_blue(slot, new_current, delay=.1)
                 #rerecord values if we had to adjust
                 #blues.read_blues()
