@@ -17,14 +17,14 @@ I_range = 4e-3 # value of the current we want to sweep from its maximum value. [
 N_I_points = 100 # Number of points to measure for each current ramps
 t_Imax_hold = 10 # Imax hold time
 t_Tset_hold = 20 # Time waiting for temperature to settle.
-Delta_T_list = [ 0.02222222,  0.06666667,  0.11111111,  0.15555556,  0.2       ] # temperature to modulate
+Delta_T_list = [0] # temperature to modulate
 
 delay = 1e-1 #reading delay
 rm = pyvisa.ResourceManager()
 
 def go_T_init(lasers):
     for laser in lasers:
-        inst = rm.open_resource('ASRL4::INSTR', open_timeout=10)        
+        inst = rm.open_resource('ASRL3::INSTR', open_timeout=10)        
         inst.baud_rate=19200
         inst.write(':SLOT ' + str(laser["Tslot"]) + '\n')
         inst.write(f':TEMP:SET {laser["T_init"]}')
@@ -35,7 +35,7 @@ def go_T_init(lasers):
 
 def change_temperature(laser, Delta_T):
     print(f"Changing {laser['name']} temperature")
-    inst = rm.open_resource('ASRL4::INSTR', open_timeout=10)
+    inst = rm.open_resource('ASRL3::INSTR', open_timeout=10)
     inst.baud_rate=19200
     inst.write(':SLOT ' + str(laser["Tslot"]) + '\n')
     time.sleep(1)
@@ -52,14 +52,16 @@ def change_temperature(laser, Delta_T):
 
 def measure_currents(lasers):
     for laser in lasers:
-        inst = rm.open_resource('ASRL4::INSTR', open_timeout=10)        
+        inst = rm.open_resource('ASRL3::INSTR', open_timeout=10)        
         inst.baud_rate=19200
         # Select the current controller
         inst.write(':SLOT ' + str(laser["Islot"]) + '\n')
 
-        # Prepare ramp 
-        Imax = float(inst.query(":LIMC:SET?", delay=delay).split(" ")[-1])
-        Imin = Imax-I_range
+        # Prepare ramp, sweep range = I_range centered around current setpoint
+        Ilim = float(inst.query(':LIMC:SET?', delay=delay).split()[-1])
+        Icurr = float(inst.query(':ILD:SET?', delay=delay).split()[-1])
+        Imax = min(Icurr + I_range/2, Ilim)
+        Imin = Imax - I_range
 
         #configure current sweep
         inst.write(':ILD:START ' + str(Imax) + '\n')
