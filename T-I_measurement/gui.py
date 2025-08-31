@@ -57,6 +57,7 @@ class ServoParams:
         self.ilim_low = self.current - 2 # mA. Assumes operation range is always within +-2 mA
         self.ilim_high = min(self.current + 2, self.read_current_limit()) # mA
         self.deriv = 0
+        self.power = 0
         self.lock_deriv = lock_deriv
 
     def is_safe(self):
@@ -113,7 +114,7 @@ class ServoParams:
 
     def get_derivative(self):
         """get (dP/P)/dI in units of %/mA"""
-        i_before = self.read_current()
+        i_before = self.current
         i_after = i_before + self.step_size
         p_before = self.read_power()
         self.set_current(i_after)
@@ -123,6 +124,7 @@ class ServoParams:
     
     def update_current(self):
         """Really basic servo with a fixed step size"""
+        self.current = self.read_current()
         if self.lock_deriv:
             self.deriv = self.get_derivative()
             error = self.lock_point - self.deriv
@@ -209,7 +211,9 @@ def make_servo_controls(laser_index, servo_params, image_path):
                     format='%.2f',
                     step=0.1).bind_value(servo_params, 'lock_point').classes('w-64')
             
-            ui.label().bind_text_from(servo_params, 'deriv', backward=lambda x: f'Deriv = {x:.2f} %/mA')
+            ui.label().bind_text_from(servo_params, 'current', backward=lambda x: f'Current = {x:.2f} mA')
+            ui.label().bind_text_from(servo_params, 'deriv', backward=lambda x: f'Derivative = {x:.2f} %/mA')
+            ui.label().bind_text_from(servo_params, 'power', backward=lambda x: f'Power = {x:.2f} mW')
             
             current_dir = os.path.dirname(os.path.abspath(__file__))
             image_folder = os.path.join(current_dir, 'images')
@@ -224,7 +228,7 @@ read_parameters()
 ui.timer(3.0, read_parameters)
 control_pannel = ui.row()
 
-twodmotservo_params = ServoParams('2DMOT', invert=True, lock_deriv=False, step_size=0.02, lock_point=39.9)
+twodmotservo_params = ServoParams('2DMOT', invert=True, lock_deriv=False, step_size=0.01, lock_point=39.85)
 motservo_params = ServoParams('MOT', invert=True, lock_point=0)
 zsservo_params = ServoParams('ZS', invert=True, lock_point=-3)
 
