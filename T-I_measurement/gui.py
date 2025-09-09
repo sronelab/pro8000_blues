@@ -75,6 +75,10 @@ class ServoParams:
         self.current = current
         return current
     
+    def reset_limits(self):
+        self.ilim_low = self.current - 2
+        self.ilim_high = min(self.current + 2, self.read_current_limit()) # mA
+    
     def read_current_limit(self):
         rm = pyvisa.ResourceManager()
         inst = rm.open_resource(THORLABS_CONTROLLER, open_timeout=10)        
@@ -169,10 +173,11 @@ def change_temperature(ii, dT):
     status_table.update()
     inst.close()
 
-def injection_lock_servo_notification(event: ValueChangeEventArguments):
+def injection_lock_servo_notification(event: ValueChangeEventArguments, servo_params):
     servo_on = event.value
     if servo_on:
         message = 'stabilization on'
+        servo_params.reset_limits()
     else:
         message = 'stabilization off'
     ui.notify(message)
@@ -194,7 +199,8 @@ def make_current_controls(laser_index, dI):
 
 def make_servo_controls(laser_index, servo_params, image_path):
     with ui.row():
-        servo_switch = ui.switch('injection lock servo ', on_change=injection_lock_servo_notification)
+        servo_switch = ui.switch('injection lock servo ',
+                                 on_change=lambda event: injection_lock_servo_notification(event, servo_params))
         servo_switches[servo_params.laser_name] = servo_switch
 
         v = ui.checkbox('show parameters', value=False)
@@ -228,8 +234,8 @@ read_parameters()
 ui.timer(3.0, read_parameters)
 control_pannel = ui.row()
 
-twodmotservo_params = ServoParams('2DMOT', invert=True, lock_deriv=False, step_size=0.01, lock_point=39.85)
-motservo_params = ServoParams('MOT', invert=True, lock_point=0)
+twodmotservo_params = ServoParams('2DMOT', invert=True, lock_deriv=False, step_size=0.01, lock_point=39.67)
+motservo_params = ServoParams('MOT', invert=True, step_size=0.01, lock_point=1.5)
 zsservo_params = ServoParams('ZS', invert=True, lock_point=-3)
 
 make_current_controls(0, dI)
